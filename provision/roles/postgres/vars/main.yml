@@ -1,0 +1,10 @@
+---
+postgres_packages:
+  - postgresql-9.3
+  - postgresql-client
+  - libpq-dev
+  - python-psycopg2
+
+dbname: pootledb
+dbuser: mmuser
+dbpassword: mostest

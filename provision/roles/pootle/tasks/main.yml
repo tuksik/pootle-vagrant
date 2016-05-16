@@ -1,0 +1,52 @@
+- name: Pootle | Setup locale default config
+  template: src=locale.j2 dest=/etc/default/locale owner=root group=root
+
+- name: Pootle | ensure packages are installed
+  apt: name={{item}} state=present
+  register: pootle_installed
+  with_items:
+      - "{{ pootle_packages }}"
+
+- name: Pootle | Install flup dependency
+  pip: name=flup state=present
+
+- name: Pootle | ensure pootle is installed
+  pip: name=Pootle state=present version=2.7.3
+
+- name: Pootle | ensure pootle config doesn' exists
+  register: pootle_config
+  file: dest=/etc/pootle.conf2 state=file
+  ignore_errors: true
+
+- name: Pootle | ensure pootle config
+  template: src=pootle.conf.j2 dest=/etc/pootle.conf owner=vagrant group=www-data
+  when: pootle_config|failed
+
+- name: Pootle | ensure upstart exists
+  register: pootle_upstart
+  copy: src=pootle.conf dest=/etc/init/pootle.conf owner=root group=root force=no
+
+- name: Pootle | ensure i18n2po is copied
+  copy: src=i18n2po dest=/usr/local/bin/i18n2po owner=vagrant group=root force=no mode=755
+
+- name: Pootle | ensure po2i18n is copied
+  copy: src=po2i18n dest=/usr/local/bin/po2i18n owner=vagrant group=root force=no mode=755
+
+- name: Pootle | ensure pootle dir is accesible
+  file: dest=/usr/local/lib/python2.7/dist-packages/pootle/ owner=vagrant group=www-data recurse=yes state=directory
+
+- name: Pootle | ensure translations are in there
+  register: translations
+  file: dest=/usr/local/lib/python2.7/dist-packages/pootle/translations.tar.gz state=file
+  ignore_errors: true
+
+- name: Pootle | ensure translations are untar
+  unarchive: copy=yes src=translations.tar.gz dest=/usr/local/lib/python2.7/dist-packages/pootle/ owner=vagrant group=www-data
+  when: translations|failed
+
+- name: Pootle | ensure bootstrap is copied
+  copy: src=bootstrap.sh dest=/home/vagrant/pootle/bootstrap.sh owner=vagrant group=vagrant force=no mode=755
+
+- name: Pootle | ensure service is started
+  command: /sbin/start pootle
+  ignore_errors: true

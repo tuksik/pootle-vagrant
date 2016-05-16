@@ -1,0 +1,16 @@
+---
+pootle_packages:
+  - build-essential
+  - libxml2-dev
+  - libxslt-dev
+  - python-dev
+  - python-pip
+  - python-levenshtein
+  - redis-server
+  - iso-codes
+
+database: pootledb
+database_user: mmuser
+database_password: mostest
+subject: AKIAIAOKFAG7CWGJ42HQ
+trailer: Apdedg+aYD6ca9lTikZrGLYslCEFROt8xxB4WzCESt68

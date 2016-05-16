@@ -1,0 +1,63 @@
+---
+- name: Update apt | ensure apt cache is up to date
+  apt: update_cache=yes
+
+- name: PostgresSQL | ensure packages are installed
+  apt: name={{item}} state=present
+  register: dbinstalled
+  with_items:
+      - "{{ postgres_packages }}"
+
+- name: PostgresSQL | ensure enable listening from *
+  template: src=postgresql.conf.j2 dest=/etc/postgresql/9.3/main/postgresql.conf owner=postgres group=postgres
+  when: dbinstalled|success
+
+- name: PostgresSQL | ensure connection to database from hosts
+  register: dbconfig
+  template: src=pg_hba.conf.j2 dest=/etc/postgresql/9.3/main/pg_hba.conf owner=postgres group=postgres
+
+- name: PostgresSQL | ensure database is created
+  register: dbcreated
+  become: true
+  become_user: postgres
+  postgresql_db: name={{dbname}}
+  when: dbconfig|success
+
+- name: PostgresSQL | ensure user has access to database
+  register: dbuser
+  become: true
+  become_user: postgres
+  postgresql_user: db={{dbname}} name={{dbuser}} password={{dbpassword}} state=present
+  when: dbcreated|success
+
+- name: PostgresSQL | ensure user has access to database extension
+  register: dbextension
+  become: true
+  become_user: postgres
+  postgresql_ext: db={{dbname}} name=plpgsql state=present
+  when: dbcreated|success
+
+- name: Creates pootle directory
+  register: pootledir
+  file: path=/home/vagrant/pootle state=directory owner=vagrant group=vagrant
+
+- name: PostgresSQL | ensure database backup is present
+  register: dbrestore
+  file: path=/home/vagrant/pootle/db.backup state=file
+  when: pootledir|success and dbuser|success
+  ignore_errors: true
+
+- name: PostgresSQL | ensure backup file is copied
+  register: dbcopied
+  copy: src=pootledb.backup dest=/home/vagrant/pootle/db.backup owner=vagrant group=vagrant
+  when: dbrestore|failed and dbuser|success and dbextension|success
+
+- name: PostgresSQL | ensure restore database
+  become: true
+  become_user: postgres
+  when: dbcopied.changed
+  command: pg_restore --role="{{dbuser}}" --clean -d pootledb /home/vagrant/pootle/db.backup
+  ignore_errors: true
+
+- name: Reload database
+  service: name=postgresql state=restarted enabled=yes

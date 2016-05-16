@@ -1,0 +1,24 @@
+---
+- name: Nginx | ensure nginx is installed
+  register: nginxinstalled
+  apt: name=nginx state=present
+
+- name: Nginx | Disable Default Site
+  when: nginxinstalled|success
+  file: dest=/etc/nginx/sites-enabled/default state=absent
+
+- name: Nginx | Check if Pootle Site exists
+  register: pootle_not_present
+  stat: path=/etc/nginx/sites-enabled/pootle.conf
+  ignore_errors: true
+
+- name: Nginx | Add Pootle Site Config
+  when: nginxinstalled|success and pootle_not_present.stat.islnk is not defined
+  register: pootle_site
+  template: src=pootle.j2 dest=/etc/nginx/sites-available/pootle.conf owner=root group=root
+
+- name: Nginx | Enable Pootle Site Config
+  when: pootle_site|success
+  file: src=/etc/nginx/sites-available/pootle.conf dest=/etc/nginx/sites-enabled/pootle.conf state=link
+  notify:
+      - Reload Nginx
