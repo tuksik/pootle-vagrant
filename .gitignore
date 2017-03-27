@@ -27,6 +27,7 @@ crashlytics-build.properties
 fabric.properties
 ### Vagrant template
 .vagrant/
+vagrant/
 ### OSX template
 .DS_Store
 .AppleDouble

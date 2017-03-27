@@ -15,7 +15,8 @@ Vagrant.configure(2) do |config|
   config.vm.network 'private_network', ip: '192.168.60.10'
   config.vm.hostname = 'test.mattermost.dev'
 
-  config.vm.synced_folder "./vagrant", "/vagrant_data"
+  config.vm.synced_folder "./vagrant", "/usr/local/lib/python2.7/dist-packages/pootle/"
+  config.vm.synced_folder "./custom", "/home/vagrant/custom"
 
   config.vm.provider 'virtualbox' do |v|
       v.memory = 2048

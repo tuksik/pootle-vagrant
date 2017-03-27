@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% load i18n locale %}
+
+{% get_current_language as LANGUAGE_CODE %}
+
+{% block title %}{% trans 'About' %} | {{ block.super }}{% endblock title %}
+
+{% block header_block %}{% endblock %}
+
+{% block content %}
+<div class="staticpage" lang="{{ LANGUAGE_CODE }}" dir="{% locale_dir %}">
+  <h1 class="title">{% trans 'About The Mattermost Translation Server' %}</h1>
+  {# Translators: For better readability, make sure to leave an space after the closing </i> tag #}
+  <p>
+    {% blocktrans trimmed %}
+    This server is used by contributors of the Mattermost open source project to translate Mattermost into different languages.<br/>
+    We'd love to have your help! Learn more about the translation process at
+    <a href="http://docs.mattermost.com/developer/localization.html" target="_blank">http://docs.mattermost.com/developer/localization.html</a>.
+    {% endblocktrans %}
+  </p>
+  <br/>
+  <p>
+    {% blocktrans trimmed %}
+    Mattermost Translations Server is powered by Pootle and Translate Toolkit.
+    {% endblocktrans %}
+  </p>
+</div>
+{% endblock %}
